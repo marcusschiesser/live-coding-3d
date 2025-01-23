@@ -152,9 +152,12 @@ class Viewer {
         }
         
         // Scale and position enemy behind sofa
-        const scale = 1.5;
+        const scale = 0.8;
         this.enemy.scale.setScalar(scale);
-        this.enemy.position.set(0, 0, -3);
+        this.enemy.position.set(0, 0, 0);
+        
+        // Rotate enemy to be upright and facing the right direction
+        this.enemy.rotation.set(Math.PI, Math.PI, 0); 
         
         // Enable shadows and ensure proper texture rendering
         this.enemy.traverse((node) => {
