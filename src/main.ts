@@ -13,21 +13,23 @@ class Viewer {
   constructor() {
     // Scene setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x1a1a1a);
+    this.scene.background = new THREE.Color(0x2c2c2c);
 
     // Camera setup
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      45,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
-    this.camera.position.z = 5;
+    this.camera.position.set(5, 3, 5);
 
     // Renderer setup
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('app')?.appendChild(this.renderer.domElement);
 
     // Controls setup
@@ -36,12 +38,17 @@ class Viewer {
     this.controls.dampingFactor = 0.05;
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(5, 5, 5);
+    directionalLight.castShadow = true;
     this.scene.add(directionalLight);
+
+    const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    backLight.position.set(-5, 3, -5);
+    this.scene.add(backLight);
 
     // Event listeners
     window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -62,7 +69,7 @@ class Viewer {
     document.body.appendChild(loadingElement);
 
     loader.load(
-      '/assets/scene.gltf',
+      '/assets/sofa_01.glb',
       (gltf) => {
         this.model = gltf.scene;
         this.scene.add(this.model);
@@ -72,9 +79,20 @@ class Viewer {
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2 / maxDim;
+        const scale = 3 / maxDim; // Increased scale for better visibility
         this.model.scale.setScalar(scale);
         this.model.position.sub(center.multiplyScalar(scale));
+        
+        // Rotate model to face front
+        this.model.rotation.y = Math.PI;
+
+        // Enable shadows
+        this.model.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+          }
+        });
 
         document.body.removeChild(loadingElement);
       },
